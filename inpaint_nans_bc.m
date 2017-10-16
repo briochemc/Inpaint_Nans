@@ -11,43 +11,43 @@ function B=inpaint_nans_bc(A,method,bcclass)
 % on either the surface of a sphere or a toroid.
 %
 % arguments (input):
-%  A - nxm array with some NaNs to be filled in
+%   A - nxm array with some NaNs to be filled in
 %
-%  method - (OPTIONAL) scalar numeric flag - specifies
-%     which approach (or physical metaphor to use
-%     for the interpolation.) All methods are capable
-%     of extrapolation, some are better than others.
-%     There are also speed differences, as well as
-%     accuracy differences for smooth surfaces.
+%   method - (OPTIONAL) scalar numeric flag - specifies
+%      which approach (or physical metaphor to use
+%      for the interpolation.) All methods are capable
+%      of extrapolation, some are better than others.
+%      There are also speed differences, as well as
+%      accuracy differences for smooth surfaces.
 %
-%     The methods employed here are a subset of the
-%     methods of the original inpaint_nans.
+%      The methods employed here are a subset of the
+%      methods of the original inpaint_nans.
 %
-%     methods {0,1} use a simple plate metaphor.
-%     method  4 uses a spring metaphor.
+%      methods {0,1} use a simple plate metaphor.
+%      method  4 uses a spring metaphor.
 %
-%     method == 0 --> (DEFAULT) see method 1, but
-%       this method does not build as large of a
-%       linear system in the case of only a few
-%       NaNs in a large array.
-%       Extrapolation behavior is linear.
-%         
-%     method == 1 --> simple approach, applies del^2
-%       over the entire array, then drops those parts
-%       of the array which do not have any contact with
-%       NaNs. Uses a least squares approach, but it
-%       does not modify known values.
-%       In the case of small arrays, this method is
-%       quite fast as it does very little extra work.
-%       Extrapolation behavior is linear.
-%         
-%     method == 4 --> Uses a spring metaphor. Assumes
-%       springs (with a nominal length of zero)
-%       connect each node with every neighbor
-%       (horizontally, vertically and diagonally)
-%       Since each node tries to be like its neighbors,
-%       extrapolation is as a constant function where
-%       this is consistent with the neighboring nodes.
+%      method == 0 --> (DEFAULT) see method 1, but
+%        this method does not build as large of a
+%        linear system in the case of only a few
+%        NaNs in a large array.
+%        Extrapolation behavior is linear.
+%
+%      method == 1 --> simple approach, applies del^2
+%        over the entire array, then drops those parts
+%        of the array which do not have any contact with
+%        NaNs. Uses a least squares approach, but it
+%        does not modify known values.
+%        In the case of small arrays, this method is
+%        quite fast as it does very little extra work.
+%        Extrapolation behavior is linear.
+%
+%      method == 4 --> Uses a spring metaphor. Assumes
+%        springs (with a nominal length of zero)
+%        connect each node with every neighbor
+%        (horizontally, vertically and diagonally)
+%        Since each node tries to be like its neighbors,
+%        extrapolation is as a constant function where
+%        this is consistent with the neighboring nodes.
 %
 %     DEFAULT: 0
 %
@@ -100,7 +100,7 @@ A=A(:);
 nm=n*m;
 k=isnan(A(:));
 
-% list those nodes which are known, and which will
+% list the nodes which are known, and which will
 % be interpolated
 nan_list=find(k);
 known_list=find(~k);
@@ -136,33 +136,33 @@ elseif ~ischar(bcclass)
 else
   % it was a character string
   valid = {'sphere' 'toroid'};
-  
+
   % check to see if it is valid
   [bcclass,errorclass] = validstring(arg,valid);
-  
+
   if ~isempty(errorclass)
     error('INPAINT_NANS_BC:improperargument', ...
       'If supplied, bcclass must be ''sphere'' or ''toroid''')
   end
 end
 
-% choice of methods
+% for different methods
 switch method
  case 0
   % The same as method == 1, except only work on those
   % elements which are NaN, or at least touch a NaN.
-  
+
   % horizontal and vertical neighbors only
   talks_to = [-1 0;0 -1;1 0;0 1];
   neighbors_list=identify_neighbors(n,m,nan_list,talks_to);
-  
+
   % list of all nodes we have identified
   all_list=[nan_list;neighbors_list];
-  
+
   % generate sparse array with second partials on row
   % variable for each element in either list, but only
   % for those nodes which have a row index > 1 or < n
-  L = find((all_list(:,2) > 1) & (all_list(:,2) < n)); 
+  L = find((all_list(:,2) > 1) & (all_list(:,2) < n));
   nl=length(L);
   if nl>0
     fda=sparse(repmat(all_list(L,1),1,3), ...
@@ -171,24 +171,24 @@ switch method
   else
     fda=spalloc(n*m,n*m,size(all_list,1)*5);
   end
-  
+
   % 2nd partials on column index
-  L = find((all_list(:,3) > 1) & (all_list(:,3) < m)); 
+  L = find((all_list(:,3) > 1) & (all_list(:,3) < m));
   nl=length(L);
   if nl>0
     fda=fda+sparse(repmat(all_list(L,1),1,3), ...
       repmat(all_list(L,1),1,3)+repmat([-n 0 n],nl,1), ...
       repmat([1 -2 1],nl,1),nm,nm);
   end
-  
+
   % eliminate knowns
   rhs=-fda(:,known_list)*A(known_list);
   k=find(any(fda(:,nan_list(:,1)),2));
-  
+
   % and solve...
   B=A;
   B(nan_list(:,1))=fda(k,nan_list(:,1))\rhs(k);
-  
+
  case 1
   % least squares approach with del^2. Build system
   % for every array element as an unknown, and then
@@ -205,37 +205,37 @@ switch method
     case 'sphere'
       % we need to have two phantom nodes at the poles
       np = np + 2;
-      
-      
-      
-      
-      
+
+
+
+
+
   end
-  
-  
-  
+
+
+
   fda=sparse(repmat(ind,1,3),[ind-1,ind,ind+1], ...
       repmat([1 -2 1],np,1),n*m,n*m);
-  
+
   % now second partials on column variable
   [i,j]=ndgrid(1:n,2:(m-1));
   ind=i(:)+(j(:)-1)*n;
   np=n*(m-2);
   fda=fda+sparse(repmat(ind,1,3),[ind-n,ind,ind+n], ...
       repmat([1 -2 1],np,1),nm,nm);
-  
+
   % eliminate knowns
   rhs=-fda(:,known_list)*A(known_list);
   k=find(any(fda(:,nan_list),2));
-  
+
   % and solve...
   B=A;
   B(nan_list(:,1))=fda(k,nan_list(:,1))\rhs(k);
-  
+
  case 4
   % Spring analogy
   % interpolating operator.
-  
+
   % list of all springs between a node and a horizontal
   % or vertical neighbor
   hv_list=[-1 -1 0;1 1 0;-n 0 -1;n 0 1];
@@ -248,21 +248,21 @@ switch method
 
   % delete replicate springs
   hv_springs=unique(sort(hv_springs,2),'rows');
-  
+
   % build sparse matrix of connections, springs
   % connecting diagonal neighbors are weaker than
   % the horizontal and vertical springs
   nhv=size(hv_springs,1);
   springs=sparse(repmat((1:nhv)',1,2),hv_springs, ...
      repmat([1 -1],nhv,1),nhv,nm);
-  
+
   % eliminate knowns
   rhs=-springs(:,known_list)*A(known_list);
-  
+
   % and solve...
   B=A;
   B(nan_list(:,1))=springs(:,nan_list(:,1))\rhs;
-  
+
 end
 
 % all done, make sure that B is the same shape as
@@ -297,11 +297,11 @@ function neighbors_list=identify_neighbors(n,m,nan_list,talks_to)
 %                      dimension of a neighbor
 %      talks_to(i,2) - defines the offset in the column
 %                      dimension of a neighbor
-%      
+%
 %      For example, talks_to = [-1 0;0 -1;1 0;0 1]
 %      means that each node talks only to its immediate
 %      neighbors horizontally and vertically.
-% 
+%
 % arguments(output):
 %  neighbors_list - array - list of all neighbors of
 %      all the nodes in nan_list
@@ -310,7 +310,7 @@ if ~isempty(nan_list)
   % use the definition of a neighbor in talks_to
   nan_count=size(nan_list,1);
   talk_count=size(talks_to,1);
-  
+
   nn=zeros(nan_count*talk_count,2);
   j=[1,nan_count];
   for i=1:talk_count
@@ -318,16 +318,16 @@ if ~isempty(nan_list)
         repmat(talks_to(i,:),nan_count,1);
     j=j+nan_count;
   end
-  
+
   % form the same format 3 column array as nan_list
   neighbors_list=[sub2ind([n,m],nn(:,1),nn(:,2)),nn];
-  
+
   % delete replicates in the neighbors list
   neighbors_list=unique(neighbors_list,'rows');
-  
+
   % and delete those which are also in the list of NaNs.
   neighbors_list=setdiff(neighbors_list,nan_list,'rows');
-  
+
 else
   neighbors_list=[];
 end
@@ -359,17 +359,17 @@ function [str,errorclass] = validstring(arg,valid)
 %        ''  --> No error. An unambiguous match for arg
 %                was found among the choices.
 %
-%        'No match found' --> No match was found among 
+%        'No match found' --> No match was found among
 %                the choices provided in valid.
 %
 %        'Ambiguous argument' --> At least two ambiguous
 %                matches were found among those provided
 %                in valid.
-%        
+%
 %
 % Example:
 %  valid = {'off' 'on' 'The sky is falling'}
-%  
+%
 %
 % See also: parse_pv_pairs, strmatch, strcmpi
 %
