@@ -5,7 +5,7 @@
 These files were copied from the MATLAB file-exchange directory by John d'Errico ([link](https://www.mathworks.com/matlabcentral/fileexchange/4551-inpaint-nans)).
 
 For a simple demo of what the function does, type (in MATLAB)
-```
+```matlab
 >> inpaint_nans_demo
 ```
 
