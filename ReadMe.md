@@ -8,3 +8,9 @@ For a simple demo of what the function does, type (in MATLAB)
 ```
 >> inpaint_nans_demo
 ```
+
+### Julia version
+
+Thanks to John d'Errico's permission, a julia version is available via the [Inpaintings.jl](https://github.com/briochemc/Inpaintings.jl) package. 
+It can also inpaint `missing` or any other value, allows for cyclic dimensions, and works for generalized *n*-dimensional arrays.
+Check it out!
